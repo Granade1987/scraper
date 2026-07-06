@@ -9,11 +9,75 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const lastId = document.getElementById("lastId");
     const newCount = document.getElementById("newCount");
+    const startIdInput = document.getElementById("startIdInput");
+    const setStartIdButton = document.getElementById("setStartIdButton");
+    const resetStartIdButton = document.getElementById("resetStartIdButton");
 
     let scrapedData = [];
+    let storedLastId = null;
+
+    const storedIdStatus = document.getElementById("storedIdStatus");
 
     scrapeButton.addEventListener("click", scrapePage);
     exportButton.addEventListener("click", exportCSV);
+    setStartIdButton.addEventListener("click", () => {
+        const raw = (startIdInput.value || "").toString().trim();
+        if (raw === "") {
+            saveStoredLastId(null);
+            resultStatus.innerText = "ℹ️ Start-ID gewist, alle meldingen vanaf nu worden als nieuw beschouwd";
+            resultStatus.className = "warning";
+            return;
+        }
+
+        const n = parseInt(raw, 10);
+        if (Number.isNaN(n) || n < 0) {
+            resultStatus.innerText = "⚠️ Ongeldig nummer ingevoerd";
+            resultStatus.className = "error";
+            return;
+        }
+
+        saveStoredLastId(n);
+        resultStatus.innerText = `✅ Start-ID ingesteld op #${n}`;
+        resultStatus.className = "success";
+    });
+
+    if (resetStartIdButton) {
+        resetStartIdButton.addEventListener("click", () => {
+            const ok = confirm("Weet je zeker dat je de opgeslagen Start‑ID wilt wissen?");
+            if (!ok) return;
+            saveStoredLastId(null);
+            if (startIdInput) startIdInput.value = "";
+            resultStatus.innerText = "✅ Start‑ID gewist";
+            resultStatus.className = "success";
+            exportButton.disabled = true;
+        });
+    }
+
+    loadStoredLastId();
+
+    function loadStoredLastId() {
+        chrome.storage.local.get({ lastSeenId: null }, (result) => {
+            storedLastId = result.lastSeenId;
+            updateStoredIdStatus();
+        });
+    }
+
+    function saveStoredLastId(id) {
+        storedLastId = id;
+        chrome.storage.local.set({ lastSeenId: id });
+        updateStoredIdStatus();
+    }
+
+    function updateStoredIdStatus() {
+        storedIdStatus.innerText = storedLastId
+            ? `📌 Laatste opgeslagen melding: #${storedLastId}`
+            : `📌 Laatste opgeslagen melding: -`;
+    }
+
+    function parseNotificationId(id) {
+        const match = String(id).match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+    }
 
     const targetPagePattern = "*://mikesjustformen.nl/wp-admin/admin.php?page=bis_notifications*";
     const targetPageUrl = "https://mikesjustformen.nl/wp-admin/admin.php?page=bis_notifications";
@@ -98,22 +162,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
 
-            scrapedData = response.data;
+            const allData = response.data || [];
+            const sortedData = allData.slice().sort((a, b) => {
+                const aId = parseNotificationId(a.id) ?? 0;
+                const bId = parseNotificationId(b.id) ?? 0;
+                return bId - aId;
+            });
 
-            resultStatus.innerHTML =
-                `✅ ${scrapedData.length} meldingen gevonden`;
+            const newItems = sortedData.filter(item => {
+                const itemId = parseNotificationId(item.id);
+                return itemId !== null && (storedLastId === null || itemId > storedLastId);
+            });
 
-            resultStatus.className = "success";
+            scrapedData = newItems;
 
-            newCount.innerText = scrapedData.length;
-
-            if (scrapedData.length > 0) {
-
-                lastId.innerText = scrapedData[0].id;
-
-                exportButton.disabled = false;
-
+            if (newItems.length > 0) {
+                const latestId = parseNotificationId(newItems[0].id);
+                if (latestId !== null) {
+                    saveStoredLastId(latestId);
+                }
             }
+
+            const displayedCount = newItems.length;
+            resultStatus.innerHTML = displayedCount > 0
+                ? `✅ ${displayedCount} nieuwe meldingen gevonden sinds #${storedLastId ?? 0}`
+                : `ℹ️ Geen nieuwe meldingen sinds #${storedLastId ?? 0}`;
+
+            resultStatus.className = displayedCount > 0 ? "success" : "warning";
+
+            newCount.innerText = displayedCount;
+            lastId.innerText = newItems.length > 0 ? newItems[0].id : (storedLastId ? `#${storedLastId}` : "-");
+
+            exportButton.disabled = displayedCount === 0;
 
         });
 

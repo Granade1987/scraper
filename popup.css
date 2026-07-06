@@ -38,6 +38,41 @@ h1 {
     height: 64px;
 }
 
+.start-id-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.start-id-row input[type="number"] {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #666;
+    background: transparent;
+    color: #fff;
+    outline: none;
+}
+
+.start-id-row input::placeholder {
+    color: #999;
+}
+
+.start-id-row button {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #fff;
+    background: #000;
+    color: #fff;
+    font-weight: bold;
+}
+
+.start-id-row button[title] {
+    padding: 6px 8px;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
 h2 {
     font-size: 15px;
     margin-bottom: 10px;
