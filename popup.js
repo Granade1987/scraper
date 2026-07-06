@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkButton.addEventListener("click", checkPage);
     scrapeButton.addEventListener("click", scrapePage);
-    exportButton.addEventListener("click", exportJSON);
+    exportButton.addEventListener("click", exportCSV);
 
     async function checkPage() {
 
@@ -90,20 +90,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    function exportJSON() {
+    function exportCSV() {
 
         if (scrapedData.length === 0) return;
 
-        const blob = new Blob(
-            [JSON.stringify(scrapedData, null, 2)],
-            { type: "application/json" }
-        );
+        const columns = [
+            "id",
+            "status",
+            "email",
+            "product",
+            "sku",
+            "geregistreerd",
+            "wachttijd"
+        ];
 
+        const escapeValue = (value) => {
+            const str = String(value ?? "");
+            const escaped = str.replace(/"/g, '""');
+            return `"${escaped}"`;
+        };
+
+        const csvRows = [columns.join(",")];
+
+        scrapedData.forEach(item => {
+            const row = columns.map(col => escapeValue(item[col]));
+            csvRows.push(row.join(","));
+        });
+
+        const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
 
         chrome.downloads.download({
             url: url,
-            filename: "voorraadmeldingen.json"
+            filename: "voorraadmeldingen.csv"
         });
 
     }
