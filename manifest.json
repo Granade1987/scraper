@@ -18,10 +18,5 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "WooCommerce Scraper"
-  },
-  "icons": {
-    "16": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text x='0' y='14' font-size='14' fill='%23000'>📊</text></svg>",
-    "48": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><text x='0' y='40' font-size='40' fill='%23000'>📊</text></svg>",
-    "128": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><text x='0' y='110' font-size='110' fill='%23000'>📊</text></svg>"
   }
 }
