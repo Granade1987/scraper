@@ -226,8 +226,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const newItems = sortedData.filter(item => {
                 const itemId = parseNotificationId(item.id);
-                // Include items from the start ID and higher (inclusive)
-                return itemId !== null && (storedLastId === null || itemId >= storedLastId);
+                // Only include items strictly after the stored last ID (exclusive)
+                return itemId !== null && (storedLastId === null || itemId > storedLastId);
             });
 
             scrapedData = newItems;
@@ -241,8 +241,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const displayedCount = newItems.length;
             resultStatus.innerHTML = displayedCount > 0
-                ? `✅ ${displayedCount} nieuwe meldingen gevonden sinds #${storedLastId ?? 0}`
-                : `ℹ️ Geen nieuwe meldingen sinds #${storedLastId ?? 0}`;
+                ? `✅ ${displayedCount} nieuwe meldingen gevonden na #${storedLastId ?? '-'}`
+                : `ℹ️ Geen nieuwe meldingen na #${storedLastId ?? '-'}`;
 
             resultStatus.className = displayedCount > 0 ? "success" : "warning";
 
