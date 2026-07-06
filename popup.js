@@ -193,7 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const newItems = sortedData.filter(item => {
                 const itemId = parseNotificationId(item.id);
-                return itemId !== null && (storedLastId === null || itemId > storedLastId);
+                // Include items from the start ID and higher (inclusive)
+                return itemId !== null && (storedLastId === null || itemId >= storedLastId);
             });
 
             scrapedData = newItems;
