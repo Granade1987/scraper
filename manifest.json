@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "WooCommerce Scraper",
+  "name": "Mikes Scraper",
   "version": "1.0",
   "description": "Scraper voor WooCommerce Back In Stock meldingen",
   "permissions": [
@@ -22,7 +22,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "WooCommerce Scraper"
+    "default_title": "Mikes Scraper"
   },
   "icons": {
     "16": "icons/icon16.png",
