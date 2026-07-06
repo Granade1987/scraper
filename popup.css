@@ -42,6 +42,8 @@ h1 {
     display: flex;
     gap: 8px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .start-id-row input[type="number"] {
@@ -53,6 +55,7 @@ h1 {
     color: #fff;
     outline: none;
     font-size: 13px;
+    min-width: 80px;
 }
 
 .start-id-row input::placeholder {
@@ -73,11 +76,11 @@ h1 {
 
 /* specific sizes so Reset stays compact and buttons fit on one line */
 .start-id-row #setStartIdButton {
-    flex: 0 0 96px;
+    flex: 0 0 84px;
 }
 .start-id-row #resetStartIdButton {
-    flex: 0 0 56px;
-    padding: 6px;
+    flex: 0 0 48px;
+    padding: 6px 4px;
 }
 
 .start-id-row button[title] {
