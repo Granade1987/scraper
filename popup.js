@@ -174,9 +174,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (response) => {
             if (chrome.runtime.lastError) {
-                // probeer content script te injecteren en opnieuw te sturen
-                console.warn('No response from content script, attempting to inject...', chrome.runtime.lastError);
-                resultStatus.innerHTML = "🔧 Content script niet actief — probeer injectie...";
+                // log gedetailleerde fout en tab info, probeer content script te injecteren en opnieuw te sturen
+                const err = chrome.runtime.lastError;
+                console.warn('No response from content script, attempting to inject...', err && err.message ? err.message : err);
+                console.debug('Tab info:', tab);
+                resultStatus.innerHTML = `🔧 Content script niet actief — probeer injectie... (${err && err.message ? err.message : 'unknown error'})`;
                 resultStatus.className = "warning";
 
                 chrome.scripting.executeScript({
@@ -184,8 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     files: ["content.js"]
                 }, () => {
                     if (chrome.runtime.lastError) {
-                        console.error('Injectie mislukt', chrome.runtime.lastError);
-                        resultStatus.innerHTML = "❌ Injectie content script mislukt.";
+                        const execErr = chrome.runtime.lastError;
+                        console.error('Injectie mislukt', execErr && execErr.message ? execErr.message : execErr);
+                        resultStatus.innerHTML = `❌ Injectie content script mislukt: ${execErr && execErr.message ? execErr.message : 'unknown'}`;
                         resultStatus.className = "error";
                         return;
                     }
@@ -193,8 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     // stuur opnieuw
                     chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (resp2) => {
                         if (chrome.runtime.lastError) {
-                            console.error('Geen antwoord na injectie', chrome.runtime.lastError);
-                            resultStatus.innerHTML = "❌ Geen antwoord na injectie.";
+                            const secondErr = chrome.runtime.lastError;
+                            console.error('Geen antwoord na injectie', secondErr && secondErr.message ? secondErr.message : secondErr);
+                            resultStatus.innerHTML = `❌ Geen antwoord na injectie: ${secondErr && secondErr.message ? secondErr.message : 'unknown'}`;
                             resultStatus.className = "error";
                             return;
                         }
