@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const pageStatus = document.getElementById("pageStatus");
     const resultStatus = document.getElementById("resultStatus");
 
-    const checkButton = document.getElementById("checkButton");
     const scrapeButton = document.getElementById("scrapeButton");
     const exportButton = document.getElementById("exportButton");
 
@@ -13,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let scrapedData = [];
 
-    checkButton.addEventListener("click", checkPage);
     scrapeButton.addEventListener("click", scrapePage);
     exportButton.addEventListener("click", exportCSV);
 
