@@ -88,8 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
         pageStatus.innerHTML = "📄 Controleer of de pagina open is";
         pageStatus.className = "warning";
 
-        const tabs = await chrome.tabs.query({ url: targetPagePattern });
-        let tab = tabs && tabs.length ? tabs[0] : null;
+        // Zoek in alle tabs naar een tab met de target path (robuster dan query with pattern)
+        const allTabs = await chrome.tabs.query({});
+        let tab = allTabs.find(t => t && t.url && t.url.includes("bis_notifications")) || null;
 
         if (tab && tab.url && tab.url.includes("bis_notifications")) {
             if (tab.status !== "complete") {
@@ -135,14 +136,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function waitForTabLoad(tabId) {
         return new Promise((resolve) => {
-            const listener = (updatedTabId, changeInfo, changedTab) => {
-                if (updatedTabId !== tabId) return;
-                if (changeInfo.status === "complete" && changedTab.url && changedTab.url.includes("bis_notifications")) {
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    resolve(changedTab);
+            // First check current tab status
+            chrome.tabs.get(tabId, (tab) => {
+                if (chrome.runtime.lastError) {
+                    // can't get tab, wait for update events as fallback
+                    const listener = (updatedTabId, changeInfo, changedTab) => {
+                        if (updatedTabId !== tabId) return;
+                        if (changeInfo.status === "complete" && changedTab.url && changedTab.url.includes("bis_notifications")) {
+                            chrome.tabs.onUpdated.removeListener(listener);
+                            resolve(changedTab);
+                        }
+                    };
+                    chrome.tabs.onUpdated.addListener(listener);
+                    return;
                 }
-            };
-            chrome.tabs.onUpdated.addListener(listener);
+
+                if (tab && tab.status === "complete" && tab.url && tab.url.includes("bis_notifications")) {
+                    resolve(tab);
+                    return;
+                }
+
+                const listener = (updatedTabId, changeInfo, changedTab) => {
+                    if (updatedTabId !== tabId) return;
+                    if (changeInfo.status === "complete" && changedTab.url && changedTab.url.includes("bis_notifications")) {
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        resolve(changedTab);
+                    }
+                };
+                chrome.tabs.onUpdated.addListener(listener);
+            });
         });
     }
 
