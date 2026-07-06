@@ -15,50 +15,76 @@ document.addEventListener("DOMContentLoaded", () => {
     scrapeButton.addEventListener("click", scrapePage);
     exportButton.addEventListener("click", exportCSV);
 
-    async function checkPage() {
+    const targetPagePattern = "*://mikesjustformen.nl/wp-admin/admin.php?page=bis_notifications*";
+    const targetPageUrl = "https://mikesjustformen.nl/wp-admin/admin.php?page=bis_notifications";
 
-        const [tab] = await chrome.tabs.query({
-            active: true,
-            currentWindow: true
-        });
+    async function ensureTargetPage() {
+        loginStatus.innerHTML = "🔍 Zoeken naar de admin meldingenpagina...";
+        loginStatus.className = "warning";
+        pageStatus.innerHTML = "📄 Controleer of de pagina open is";
+        pageStatus.className = "warning";
 
-        if (!tab) return false;
+        const tabs = await chrome.tabs.query({ url: targetPagePattern });
+        let tab = tabs && tabs.length ? tabs[0] : null;
 
-        if (tab.url.includes("/wp-admin")) {
-
-            loginStatus.innerHTML = "🟢 Ingelogd";
+        if (tab && tab.url && tab.url.includes("bis_notifications")) {
+            if (tab.status !== "complete") {
+                tab = await waitForTabLoad(tab.id);
+            }
+            loginStatus.innerHTML = "🟢 Admin pagina gevonden";
             loginStatus.className = "success";
-
-            pageStatus.innerHTML = "🟢 WordPress Admin gevonden";
+            pageStatus.innerHTML = "🟢 Pagina is klaar om te scrapen";
             pageStatus.className = "success";
-
-            scrapeButton.disabled = false;
-            return true;
-
-        } else {
-
-            loginStatus.innerHTML = "🔴 Niet ingelogd of verkeerde pagina";
-            loginStatus.className = "error";
-
-            pageStatus.innerHTML = "🔴 Open eerst de WooCommerce admin";
-            pageStatus.className = "error";
-
-            scrapeButton.disabled = true;
-            return false;
-
+            return tab;
         }
 
+        loginStatus.innerHTML = "🔄 Openen van de admin meldingenpagina...";
+        loginStatus.className = "warning";
+        pageStatus.innerHTML = "📄 Pagina wordt geopend in een tab";
+        pageStatus.className = "warning";
+
+        return new Promise((resolve) => {
+            chrome.tabs.create({ url: targetPageUrl, active: false }, async (createdTab) => {
+                if (chrome.runtime.lastError || !createdTab || !createdTab.id) {
+                    loginStatus.innerHTML = "❌ Pagina kon niet worden geopend.";
+                    loginStatus.className = "error";
+                    resolve(null);
+                    return;
+                }
+
+                const loadedTab = await waitForTabLoad(createdTab.id);
+                if (!loadedTab) {
+                    loginStatus.innerHTML = "❌ Pagina laden mislukt.";
+                    loginStatus.className = "error";
+                    resolve(null);
+                    return;
+                }
+
+                loginStatus.innerHTML = "🟢 Pagina geladen";
+                loginStatus.className = "success";
+                pageStatus.innerHTML = "🟢 Start scrapen...";
+                pageStatus.className = "success";
+                resolve(loadedTab);
+            });
+        });
+    }
+
+    function waitForTabLoad(tabId) {
+        return new Promise((resolve) => {
+            const listener = (updatedTabId, changeInfo, changedTab) => {
+                if (updatedTabId !== tabId) return;
+                if (changeInfo.status === "complete" && changedTab.url && changedTab.url.includes("bis_notifications")) {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve(changedTab);
+                }
+            };
+            chrome.tabs.onUpdated.addListener(listener);
+        });
     }
 
     async function scrapePage() {
-
-        const pageValid = await checkPage();
-        if (!pageValid) return;
-
-        const [tab] = await chrome.tabs.query({
-            active: true,
-            currentWindow: true
-        });
+        const tab = await ensureTargetPage();
+        if (!tab) return;
 
         chrome.tabs.sendMessage(tab.id, {
             action: "scrape"

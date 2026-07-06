@@ -9,6 +9,9 @@
     "activeTab",
     "downloads"
   ],
+  "host_permissions": [
+    "https://mikesjustformen.nl/*"
+  ],
   "content_scripts": [
     {
       "matches": ["*://*/*"],
