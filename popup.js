@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentWindow: true
         });
 
-        if (!tab) return;
+        if (!tab) return false;
 
         if (tab.url.includes("/wp-admin")) {
 
@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
             pageStatus.className = "success";
 
             scrapeButton.disabled = false;
+            return true;
 
         } else {
 
@@ -45,12 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
             pageStatus.className = "error";
 
             scrapeButton.disabled = true;
+            return false;
 
         }
 
     }
 
     async function scrapePage() {
+
+        const pageValid = await checkPage();
+        if (!pageValid) return;
 
         const [tab] = await chrome.tabs.query({
             active: true,
