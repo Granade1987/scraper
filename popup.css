@@ -67,6 +67,17 @@ h1 {
     color: #fff;
     font-weight: bold;
     font-size: 13px;
+    width: auto; /* override global full-width */
+    flex: 0 0 auto;
+}
+
+/* specific sizes so Reset stays compact and buttons fit on one line */
+.start-id-row #setStartIdButton {
+    flex: 0 0 96px;
+}
+.start-id-row #resetStartIdButton {
+    flex: 0 0 56px;
+    padding: 6px;
 }
 
 .start-id-row button[title] {
