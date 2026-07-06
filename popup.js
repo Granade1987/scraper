@@ -171,99 +171,62 @@ document.addEventListener("DOMContentLoaded", () => {
     async function scrapePage() {
         const tab = await ensureTargetPage();
         if (!tab) return;
-        chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (response) => {
-            if (chrome.runtime.lastError) {
-                // log gedetailleerde fout en tab info, probeer content script te injecteren en opnieuw te sturen
-                const err = chrome.runtime.lastError;
-                console.warn('No response from content script, attempting to inject...', err && err.message ? err.message : err);
-                console.debug('Tab info:', tab);
-                resultStatus.innerHTML = `🔧 Content script niet actief — probeer injectie... (${err && err.message ? err.message : 'unknown error'})`;
-                resultStatus.className = "warning";
-
-                // Probeer eerst content script te injecteren, maar als dat niet werkt gebruik executeScript met een inline functie
-                chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    files: ["content.js"]
-                }, () => {
-                    if (chrome.runtime.lastError) {
-                        const execErr = chrome.runtime.lastError;
-                        console.warn('Injectie content script mislukt, ga direct scrapen met executeScript()', execErr && execErr.message ? execErr.message : execErr);
-                        // fallback: run scrape function directly in page
-                        scrapeViaFunction(tab.id);
-                        return;
+        // Primary scraping method: execute a function in the page context to avoid messaging errors
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                try {
+                    // If content script exposed a function, call it
+                    if (window.__mikes_scraper_scrape && typeof window.__mikes_scraper_scrape === 'function') {
+                        try { return window.__mikes_scraper_scrape(); } catch (e) {}
                     }
 
-                    // stuur opnieuw (indien injectie wel lukte)
-                    chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (resp2) => {
-                        if (chrome.runtime.lastError) {
-                            const secondErr = chrome.runtime.lastError;
-                            console.warn('Geen antwoord na injectie, gebruik executeScript fallback', secondErr && secondErr.message ? secondErr.message : secondErr);
-                            scrapeViaFunction(tab.id);
-                            return;
-                        }
-                        handleScrapeResponse(resp2);
+                    const table = document.querySelector('table');
+                    if (!table) return [];
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    const data = rows.map(row => {
+                        const q = (sel) => {
+                            const el = row.querySelector(sel);
+                            return el ? el.innerText.trim() : null;
+                        };
+                        const id = q('td.column-id') || (row.querySelector('th') ? row.querySelector('th').innerText.trim() : null) || q('td:first-child');
+                        const status = q('td.column-status') || q('td.status') || '';
+                        const email = q('td.column-email') || q('td.email') || '';
+                        const product = q('td.column-product') || q('td.product') || '';
+                        const sku = q('td.column-sku') || q('td.sku') || '';
+                        const geregistreerd = q('td.column-geregistreerd') || q('td.column-registered') || q('td.registered') || '';
+                        const wachttijd = q('td.column-wachttijd') || q('td.column-wait') || '';
+                        return { id, status, email, product, sku, geregistreerd, wachttijd };
                     });
-                });
+                    return data;
+                } catch (e) {
+                    return { error: String(e) };
+                }
+            }
+        }, (injectionResults) => {
+            if (chrome.runtime.lastError) {
+                console.error('executeScript failed', chrome.runtime.lastError);
+                resultStatus.innerHTML = `❌ Scrapen mislukt: ${chrome.runtime.lastError && chrome.runtime.lastError.message ? chrome.runtime.lastError.message : 'unknown'}`;
+                resultStatus.className = 'error';
                 return;
             }
 
-            handleScrapeResponse(response);
+            const pageResult = injectionResults && injectionResults[0] && injectionResults[0].result ? injectionResults[0].result : null;
+            if (!pageResult) {
+                resultStatus.innerHTML = 'ℹ️ Geen data gevonden op pagina.';
+                resultStatus.className = 'warning';
+                scrapedData = [];
+                exportButton.disabled = true;
+                return;
+            }
+            if (pageResult.error) {
+                resultStatus.innerHTML = `❌ Fout tijdens scrapen: ${pageResult.error}`;
+                resultStatus.className = 'error';
+                return;
+            }
 
+            handleScrapeResponse({ data: pageResult });
         });
-
-        // fallback: function that scrapes the page directly (used when messaging fails)
-        function scrapeViaFunction(tabId) {
-            resultStatus.innerHTML = "🔧 Scrapen via fallback (directe pagina-evaluatie)...";
-            resultStatus.className = "warning";
-
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                func: () => {
-                    try {
-                        const table = document.querySelector('table');
-                        if (!table) return [];
-                        const rows = Array.from(table.querySelectorAll('tbody tr'));
-                        const data = rows.map(row => {
-                            const q = (sel) => {
-                                const el = row.querySelector(sel);
-                                return el ? el.innerText.trim() : null;
-                            };
-                            const id = q('td.column-id') || (row.querySelector('th') ? row.querySelector('th').innerText.trim() : null) || q('td:first-child');
-                            const status = q('td.column-status') || q('td.status') || '';
-                            const email = q('td.column-email') || q('td.email') || '';
-                            const product = q('td.column-product') || q('td.product') || '';
-                            const sku = q('td.column-sku') || q('td.sku') || '';
-                            const geregistreerd = q('td.column-geregistreerd') || q('td.column-registered') || q('td.registered') || '';
-                            const wachttijd = q('td.column-wachttijd') || q('td.column-wait') || '';
-                            return { id, status, email, product, sku, geregistreerd, wachttijd };
-                        });
-                        return data;
-                    } catch (e) {
-                        return { error: String(e) };
-                    }
-                }
-            }, (injectionResults) => {
-                if (chrome.runtime.lastError) {
-                    console.error('executeScript fallback failed', chrome.runtime.lastError);
-                    resultStatus.innerHTML = `❌ Fallback scrapen mislukt: ${chrome.runtime.lastError && chrome.runtime.lastError.message ? chrome.runtime.lastError.message : 'unknown'}`;
-                    resultStatus.className = 'error';
-                    return;
-                }
-
-                const pageResult = injectionResults && injectionResults[0] && injectionResults[0].result ? injectionResults[0].result : null;
-                if (!pageResult) {
-                    resultStatus.innerHTML = 'ℹ️ Geen data gevonden met fallback.';
-                    resultStatus.className = 'warning';
-                    return;
-                }
-                if (pageResult.error) {
-                    resultStatus.innerHTML = `❌ Fallback error: ${pageResult.error}`;
-                    resultStatus.className = 'error';
-                    return;
-                }
-                handleScrapeResponse({ data: pageResult });
-            });
-        }
 
         function handleScrapeResponse(response) {
             if (!response || !response.data) {
