@@ -252,12 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             scrapedData = newItems;
 
-            if (newItems.length > 0) {
-                const latestId = parseNotificationId(newItems[0].id);
-                if (latestId !== null) {
-                    saveStoredLastId(latestId);
-                }
-            }
+            // Let op: we do NOT automatisch het opgeslagen Start‑ID updaten wanneer er nieuwe items
+            // worden gevonden. De gebruiker kan handmatig een Start‑ID instellen of resetten.
 
             const displayedCount = newItems.length;
             resultStatus.innerHTML = displayedCount > 0
