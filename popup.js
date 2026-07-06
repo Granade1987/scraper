@@ -252,9 +252,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             scrapedData = newItems;
 
-            // Let op: we do NOT automatisch het opgeslagen Start‑ID updaten wanneer er nieuwe items
-            // worden gevonden. De gebruiker kan handmatig een Start‑ID instellen of resetten.
-
             const displayedCount = newItems.length;
             resultStatus.innerHTML = displayedCount > 0
                 ? `✅ ${displayedCount} nieuwe meldingen gevonden na #${storedLastId ?? '-'}`
@@ -265,13 +262,20 @@ document.addEventListener("DOMContentLoaded", () => {
             newCount.innerText = displayedCount;
             // Toon alleen het numerieke ID zonder extra HTML/tekst
             let latestDisplay = "-";
+            let highestId = null;
             if (newItems.length > 0) {
                 const parsed = parseNotificationId(newItems[0].id);
                 latestDisplay = parsed !== null ? `#${parsed}` : String(newItems[0].id);
+                highestId = parsed;
             } else if (storedLastId) {
                 latestDisplay = `#${storedLastId}`;
             }
             lastId.innerText = latestDisplay;
+
+            // Bewaar automatisch het hoogste gevonden ID als opgeslagen ID
+            if (highestId !== null) {
+                saveStoredLastId(highestId);
+            }
 
             exportButton.disabled = displayedCount === 0;
         }
