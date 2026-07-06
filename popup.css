@@ -78,7 +78,7 @@ h1 {
 /* specific sizes so Reset stays compact and buttons fit on one line */
 .start-id-row #setStartIdButton,
 .start-id-row #resetStartIdButton {
-    flex: 0 0 100px; /* equal width */
+    flex: 0 0 70px; /* equal width */
     padding: 6px 8px;
     box-sizing: border-box;
 }
