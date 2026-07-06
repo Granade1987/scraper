@@ -6,7 +6,8 @@
   "permissions": [
     "tabs",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "downloads"
   ],
   "content_scripts": [
     {

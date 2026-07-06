@@ -120,11 +120,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
 
-        chrome.downloads.download({
-            url: url,
-            filename: "voorraadmeldingen.csv"
-        });
+        if (chrome.downloads && chrome.downloads.download) {
+            chrome.downloads.download({
+                url: url,
+                filename: "voorraadmeldingen.csv"
+            }, () => {
+                if (chrome.runtime.lastError) {
+                    downloadFallback(url, "voorraadmeldingen.csv");
+                }
+            });
+        } else {
+            downloadFallback(url, "voorraadmeldingen.csv");
+        }
+    }
 
+    function downloadFallback(url, filename) {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
     }
 
 });
