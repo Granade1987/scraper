@@ -109,21 +109,26 @@ h2 {
     background: #111;
     border: 1px solid #444;
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     box-shadow: 0 1px 8px rgba(0,0,0,.35);
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .info span {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     color: #ccc;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .info strong {
-    font-size: 18px;
+    font-size: 16px;
     color: #fff;
+    line-height: 1;
 }
 
 /* Knoppen */

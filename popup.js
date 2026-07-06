@@ -251,7 +251,15 @@ document.addEventListener("DOMContentLoaded", () => {
             resultStatus.className = displayedCount > 0 ? "success" : "warning";
 
             newCount.innerText = displayedCount;
-            lastId.innerText = newItems.length > 0 ? newItems[0].id : (storedLastId ? `#${storedLastId}` : "-");
+            // Toon alleen het numerieke ID zonder extra HTML/tekst
+            let latestDisplay = "-";
+            if (newItems.length > 0) {
+                const parsed = parseNotificationId(newItems[0].id);
+                latestDisplay = parsed !== null ? `#${parsed}` : String(newItems[0].id);
+            } else if (storedLastId) {
+                latestDisplay = `#${storedLastId}`;
+            }
+            lastId.innerText = latestDisplay;
 
             exportButton.disabled = displayedCount === 0;
         }
