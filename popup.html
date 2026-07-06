@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WooCommerce Scraper</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h1>WooCommerce Scraper</h1>
+
+        <div class="status-box">
+            <h2>Status</h2>
+
+            <p id="loginStatus">
+                🔴 Controleren...
+            </p>
+
+            <p id="pageStatus">
+                📄 Geen pagina gecontroleerd
+            </p>
+
+            <p id="resultStatus">
+                📦 Nog niets opgehaald
+            </p>
+        </div>
+
+        <div class="info-box">
+
+            <div class="info">
+                <span>Laatste ID</span>
+                <strong id="lastId">-</strong>
+            </div>
+
+            <div class="info">
+                <span>Nieuwe meldingen</span>
+                <strong id="newCount">0</strong>
+            </div>
+
+        </div>
+
+        <button id="checkButton">
+            Controleer pagina
+        </button>
+
+        <button id="scrapeButton" disabled>
+            Nieuwe meldingen ophalen
+        </button>
+
+        <button id="exportButton" disabled>
+            Exporteer naar JSON
+        </button>
+
+    </div>
+
+    <script src="popup.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+/* Algemene instellingen */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    width: 340px;
+    background: #f4f6f9;
+    color: #333;
+}
+
+.container {
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #2271b1;
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #444;
+}
+
+/* Statusvak */
+.status-box {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.status-box p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* Informatieblokken */
+.info-box {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.info {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.info span {
+    display: block;
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 8px;
+}
+
+.info strong {
+    font-size: 24px;
+    color: #2271b1;
+}
+
+/* Knoppen */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #2271b1;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .2s;
+}
+
+button:hover {
+    background: #135e96;
+}
+
+button:disabled {
+    background: #b5b5b5;
+    cursor: not-allowed;
+}
+
+/* Statuskleuren */
+.success {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.error {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.warning {
+    color: #ef6c00;
+    font-weight: bold;
+}
