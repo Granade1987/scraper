@@ -1,10 +1,15 @@
 // content.js
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+console.log('Mikes Scraper: content.js geladen');
 
-    if (request.action !== "scrape") {
-        return;
-    }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    try {
+        console.log('Mikes Scraper: bericht ontvangen', request);
+        if (request.action !== "scrape") {
+            return;
+        }
+
+        console.log('Mikes Scraper: scrape gestart');
 
     const data = [];
 
@@ -51,10 +56,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     });
 
-    sendResponse({
-        data: data
-    });
+    // stuur resultaat terug
+    try {
+        sendResponse({ data: data });
+        console.log('Mikes Scraper: scrape klaar, aantal items=', data.length);
+    } catch (e) {
+        console.error('Mikes Scraper: fout bij sendResponse', e);
+    }
 
-    return true;
-
+        return true;
+    } catch (err) {
+        console.error('Mikes Scraper: onverwachte fout in content script', err);
+        // probeer een lege respons terug te sturen
+        try { sendResponse({ data: [], error: String(err) }); } catch (e) {}
+        return true;
+    }
 });
