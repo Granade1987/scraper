@@ -172,16 +172,49 @@ document.addEventListener("DOMContentLoaded", () => {
         const tab = await ensureTargetPage();
         if (!tab) return;
 
-        chrome.tabs.sendMessage(tab.id, {
-            action: "scrape"
-        }, (response) => {
-
+        chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (response) => {
             if (chrome.runtime.lastError) {
+                // probeer content script te injecteren en opnieuw te sturen
+                console.warn('No response from content script, attempting to inject...', chrome.runtime.lastError);
+                resultStatus.innerHTML = "🔧 Content script niet actief — probeer injectie...";
+                resultStatus.className = "warning";
 
-                resultStatus.innerHTML = "❌ Content script niet gevonden.";
-                resultStatus.className = "error";
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ["content.js"]
+                }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Injectie mislukt', chrome.runtime.lastError);
+                        resultStatus.innerHTML = "❌ Injectie content script mislukt.";
+                        resultStatus.className = "error";
+                        return;
+                    }
+
+                    // stuur opnieuw
+                    chrome.tabs.sendMessage(tab.id, { action: "scrape" }, (resp2) => {
+                        if (chrome.runtime.lastError) {
+                            console.error('Geen antwoord na injectie', chrome.runtime.lastError);
+                            resultStatus.innerHTML = "❌ Geen antwoord na injectie.";
+                            resultStatus.className = "error";
+                            return;
+                        }
+                        handleScrapeResponse(resp2);
+                    });
+                });
                 return;
+            }
 
+            handleScrapeResponse(response);
+
+        });
+
+        function handleScrapeResponse(response) {
+            if (!response || !response.data) {
+                resultStatus.innerHTML = "ℹ️ Geen data ontvangen van content script.";
+                resultStatus.className = "warning";
+                scrapedData = [];
+                exportButton.disabled = true;
+                return;
             }
 
             const allData = response.data || [];
@@ -217,8 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lastId.innerText = newItems.length > 0 ? newItems[0].id : (storedLastId ? `#${storedLastId}` : "-");
 
             exportButton.disabled = displayedCount === 0;
-
-        });
+        }
 
     }
 
