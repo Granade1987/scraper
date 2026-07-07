@@ -88,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
         pageStatus.innerHTML = "📄 Controleer of de pagina open is";
         pageStatus.className = "warning";
 
-        // Zoek in alle tabs naar een tab met de target path (robuster dan query with pattern)
         const allTabs = await chrome.tabs.query({});
         let tab = allTabs.find(t => t && t.url && t.url.includes("bis_notifications")) || null;
 
@@ -96,16 +95,29 @@ document.addEventListener("DOMContentLoaded", () => {
             if (tab.status !== "complete") {
                 tab = await waitForTabLoad(tab.id);
             }
+
+            loginStatus.innerHTML = "🔄 Vernieuwen van de meldingenpagina...";
+            loginStatus.className = "warning";
+            pageStatus.innerHTML = "📄 Pagina wordt ververst in de achtergrond";
+            pageStatus.className = "warning";
+
+            const refreshedTab = await refreshTargetTab(tab.id);
+            if (!refreshedTab) {
+                loginStatus.innerHTML = "❌ Pagina vernieuwen mislukt.";
+                loginStatus.className = "error";
+                return null;
+            }
+
             loginStatus.innerHTML = "🟢 Admin pagina gevonden";
             loginStatus.className = "success";
-            pageStatus.innerHTML = "🟢 Pagina is klaar om te scrapen";
+            pageStatus.innerHTML = "🟢 Pagina is ververst en klaar om te scrapen";
             pageStatus.className = "success";
-            return tab;
+            return refreshedTab;
         }
 
         loginStatus.innerHTML = "🔄 Openen van de admin meldingenpagina...";
         loginStatus.className = "warning";
-        pageStatus.innerHTML = "📄 Pagina wordt geopend in een tab";
+        pageStatus.innerHTML = "📄 Pagina wordt geopend in een achtergrondtab";
         pageStatus.className = "warning";
 
         return new Promise((resolve) => {
@@ -125,11 +137,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
+                loginStatus.innerHTML = "🔄 Vernieuwen van de nieuw geopende pagina...";
+                loginStatus.className = "warning";
+                pageStatus.innerHTML = "📄 Pagina wordt ververst in de achtergrond";
+                pageStatus.className = "warning";
+
+                const refreshedTab = await refreshTargetTab(loadedTab.id);
+                if (!refreshedTab) {
+                    loginStatus.innerHTML = "❌ Pagina vernieuwen mislukt.";
+                    loginStatus.className = "error";
+                    resolve(null);
+                    return;
+                }
+
                 loginStatus.innerHTML = "🟢 Pagina geladen";
                 loginStatus.className = "success";
                 pageStatus.innerHTML = "🟢 Start scrapen...";
                 pageStatus.className = "success";
-                resolve(loadedTab);
+                resolve(refreshedTab);
+            });
+        });
+    }
+
+    function refreshTargetTab(tabId) {
+        return new Promise((resolve) => {
+            chrome.tabs.reload(tabId, { bypassCache: true }, () => {
+                if (chrome.runtime.lastError) {
+                    console.warn("Tab reload failed", chrome.runtime.lastError);
+                    resolve(null);
+                    return;
+                }
+
+                waitForTabLoad(tabId).then(resolve).catch(() => resolve(null));
             });
         });
     }
