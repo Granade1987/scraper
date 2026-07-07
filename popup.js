@@ -112,12 +112,12 @@ document.addEventListener("DOMContentLoaded", () => {
             loginStatus.className = "success";
             pageStatus.innerHTML = "🟢 Pagina is ververst en klaar om te scrapen";
             pageStatus.className = "success";
-            return refreshedTab;
+            return { tab: refreshedTab, temporary: false };
         }
 
-        loginStatus.innerHTML = "🔄 Openen van de admin meldingenpagina...";
+        loginStatus.innerHTML = "🔄 Openen van de admin meldingenpagina in de achtergrond...";
         loginStatus.className = "warning";
-        pageStatus.innerHTML = "📄 Pagina wordt geopend in een achtergrondtab";
+        pageStatus.innerHTML = "📄 Tijdelijke achtergrondtab wordt gebruikt";
         pageStatus.className = "warning";
 
         return new Promise((resolve) => {
@@ -137,9 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                loginStatus.innerHTML = "🔄 Vernieuwen van de nieuw geopende pagina...";
+                loginStatus.innerHTML = "🔄 Vernieuwen van de achtergrondtab...";
                 loginStatus.className = "warning";
-                pageStatus.innerHTML = "📄 Pagina wordt ververst in de achtergrond";
+                pageStatus.innerHTML = "📄 Achtergrondtab wordt ververst";
                 pageStatus.className = "warning";
 
                 const refreshedTab = await refreshTargetTab(loadedTab.id);
@@ -150,11 +150,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                loginStatus.innerHTML = "🟢 Pagina geladen";
+                loginStatus.innerHTML = "🟢 Achtergrondtab geladen";
                 loginStatus.className = "success";
                 pageStatus.innerHTML = "🟢 Start scrapen...";
                 pageStatus.className = "success";
-                resolve(refreshedTab);
+                resolve({ tab: refreshedTab, temporary: true });
             });
         });
     }
@@ -208,8 +208,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function scrapePage() {
-        const tab = await ensureTargetPage();
-        if (!tab) return;
+        const target = await ensureTargetPage();
+        if (!target || !target.tab) return;
+
+        const { tab, temporary: temporaryTab } = target;
+
+        const closeTemporaryTab = () => {
+            if (!temporaryTab || !tab || !tab.id) return;
+            chrome.tabs.remove(tab.id, () => {
+                if (chrome.runtime.lastError) {
+                    console.warn("Temporary tab cleanup failed", chrome.runtime.lastError);
+                }
+            });
+        };
+
         // Primary scraping method: execute a function in the page context to avoid messaging errors
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -243,6 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         }, (injectionResults) => {
+            if (temporaryTab) {
+                closeTemporaryTab();
+            }
+
             if (chrome.runtime.lastError) {
                 console.error('executeScript failed', chrome.runtime.lastError);
                 resultStatus.innerHTML = `❌ Scrapen mislukt: ${chrome.runtime.lastError && chrome.runtime.lastError.message ? chrome.runtime.lastError.message : 'unknown'}`;
