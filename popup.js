@@ -245,10 +245,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (id) {
                             try {
                                 const s = String(id);
-                                const m = s.match(/#?\d+/);
-                                if (m) {
-                                    id = m[0];
+                                const m = s.match(/(\d+)/);
+                                if (m && m[1]) {
+                                    // keep only the numeric id (e.g. "1125")
+                                    id = m[1];
                                 } else {
+                                    // fallback: remove known labels and pipes
                                     id = s.replace(/\b(Bewerk|Verwijder)\b/gi, '').replace(/\|/g, ' ').trim();
                                 }
                             } catch (e) {}
@@ -384,7 +386,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Bouw rijen voor de HTML-tabel
                 const tableRows = scrapedData.map(item => {
-                        return '<tr>' + columns.map(col => `<td>${escapeHtml(item[col])}</td>`).join('') + '</tr>';
+                    return '<tr>' + columns.map(col => {
+                        const val = (item[col] === null || item[col] === undefined) ? '' : String(item[col]);
+                        // show id as #<number> when available
+                        const display = col === 'id' && val !== '' ? '#' + val : val;
+                        return `<td>${escapeHtml(display)}</td>`;
+                    }).join('') + '</tr>';
                 }).join('');
 
                 // Volledige HTML-pagina die in een nieuw tabblad wordt geopend
