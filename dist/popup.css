@@ -1,0 +1,202 @@
+/* Algemene instellingen */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    width: 400px;
+    min-height: 100px;
+    background: #000;
+    color: #fff;
+    font-size: 13px;
+}
+
+.container {
+    padding: 10px;
+}
+
+h1 {
+    text-align: center;
+    color: #fff;
+    font-size: 15px;
+    margin: 6px 0 8px;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+}
+
+.logo {
+    width: 48px;
+    height: 48px;
+}
+
+.start-id-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: nowrap; /* keep input and buttons on one line */
+    align-items: center;
+    overflow: hidden;
+}
+
+.start-id-row input[type="number"] {
+    flex: 1;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #666;
+    background: transparent;
+    color: #fff;
+    outline: none;
+    font-size: 13px;
+    min-width: 100px;
+}
+
+.start-id-row input::placeholder {
+    color: #999;
+}
+
+.start-id-row button {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #fff;
+    background: #000;
+    color: #fff;
+    font-weight: bold;
+    font-size: 13px;
+    width: auto; /* override global full-width */
+    flex: 0 0 auto;
+}
+
+/* specific sizes so Reset stays compact and buttons fit on one line */
+.start-id-row #setStartIdButton,
+.start-id-row #resetStartIdButton {
+    flex: 0 0 130px; /* equal width */
+    padding: 6px 8px;
+    box-sizing: border-box;
+}
+
+/* ensure buttons stay visible on very small widths by shrinking text slightly */
+.start-id-row button {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.start-id-row button[title] {
+    padding: 6px 8px;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+h2 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+/* Statusvak */
+.status-box {
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 8px rgba(0,0,0,.35);
+}
+
+.status-box p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* Informatieblokken */
+.info-box {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.info {
+    flex: 1;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    box-shadow: 0 1px 8px rgba(0,0,0,.35);
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info span {
+    display: block;
+    font-size: 11px;
+    color: #ccc;
+    margin-bottom: 4px;
+}
+
+.info strong {
+    font-size: 16px;
+    color: #fff;
+    line-height: 1;
+}
+
+/* Knoppen */
+button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    background: #000;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s, transform .1s;
+}
+
+button:hover {
+    background: #222;
+}
+
+button:active {
+    background: #fff;
+    color: #000;
+    border-color: #000;
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background: #333;
+    color: #888;
+    border-color: #444;
+    cursor: not-allowed;
+}
+
+/* Statuskleuren */
+.success {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.error {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.warning {
+    color: #ef6c00;
+    font-weight: bold;
+}

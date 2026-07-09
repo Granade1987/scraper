@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikes Scraper</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <img src="icons/logo.png" alt="Mikes Scraper logo" class="logo">
+            <h1>Mikes Scraper</h1>
+        </div>
+
+        <div class="status-box">
+            <h2>Status</h2>
+
+            <p id="loginStatus">
+                🔴 Controleren...
+            </p>
+
+            <p id="pageStatus">
+                📄 Geen pagina gecontroleerd
+            </p>
+
+            <p id="resultStatus">
+                📦 Nog niets opgehaald
+            </p>
+            <p id="storedIdStatus">
+                📌 Laatste opgeslagen melding: -
+            </p>
+        </div>
+
+        <div class="info-box">
+
+            <div class="info">
+                <span>Laatste Nr</span>
+                <strong id="lastId">-</strong>
+            </div>
+
+            <div class="info">
+                <span>Nieuwe meldingen</span>
+                <strong id="newCount">0</strong>
+            </div>
+
+        </div>
+
+        <div class="start-id-row">
+            <input id="startIdInput" type="number" placeholder="Start Nr:" />
+            <button id="setStartIdButton">Stel in</button>
+            <button id="resetStartIdButton" title="Reset opgeslagen start-ID">Reset</button>
+        </div>
+
+        <button id="scrapeButton">
+            Gegevens ophalen
+        </button>
+
+        <button id="exportButton" disabled>
+            Exporteer naar CSV
+        </button>
+
+    </div>
+
+    <script src="popup.js"></script>
+
+</body>
+</html>
