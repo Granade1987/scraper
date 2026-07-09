@@ -364,21 +364,68 @@ document.addEventListener("DOMContentLoaded", () => {
             csvRows.push(row.join(","));
         });
 
-        const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
+                // Converteer CSV naar tekst
+                const csvText = csvRows.join("\r\n");
 
-        if (chrome.downloads && chrome.downloads.download) {
-            chrome.downloads.download({
-                url: url,
-                filename: "voorraadmeldingen.csv"
-            }, () => {
-                if (chrome.runtime.lastError) {
-                    downloadFallback(url, "voorraadmeldingen.csv");
-                }
-            });
-        } else {
-            downloadFallback(url, "voorraadmeldingen.csv");
-        }
+                // Helper om HTML-veilig te maken
+                const escapeHtml = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, '&quot;');
+
+                // Bouw rijen voor de HTML-tabel
+                const tableRows = scrapedData.map(item => {
+                        return '<tr>' + columns.map(col => `<td>${escapeHtml(item[col])}</td>`).join('') + '</tr>';
+                }).join('');
+
+                // Volledige HTML-pagina die in een nieuw tabblad wordt geopend
+                const html = `<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Voorraadmeldingen</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body{font-family: system-ui,Segoe UI,Roboto,Arial;margin:12px}
+        .controls{margin-bottom:8px}
+        button{margin-right:8px;padding:6px 10px}
+        table{border-collapse:collapse;width:100%}
+        th,td{border:1px solid #ddd;padding:6px;text-align:left}
+        th{background:#f7f7f7;position:sticky;top:0}
+        tbody tr:nth-child(odd){background:#fbfbfb}
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button id="downloadBtn">Download CSV</button>
+        <button id="copyBtn">Kopieer CSV</button>
+    </div>
+    <div style="overflow:auto;max-height:80vh;">
+        <table>
+            <thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+            <tbody>${tableRows}</tbody>
+        </table>
+    </div>
+    <script>
+        const csvText = ${JSON.stringify(csvText)};
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'voorraadmeldingen.csv'; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        });
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(csvText).then(() => alert('CSV gekopieerd naar klembord'))
+                    .catch(() => alert('Kopiëren mislukt'));
+            } else {
+                alert('Klembord-API niet beschikbaar in deze context');
+            }
+        });
+    </script>
+</body>
+</html>`;
+
+                const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+                chrome.tabs.create({ url: dataUrl });
     }
 
     function downloadFallback(url, filename) {
