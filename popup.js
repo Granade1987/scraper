@@ -240,7 +240,19 @@ document.addEventListener("DOMContentLoaded", () => {
                             const el = row.querySelector(sel);
                             return el ? el.innerText.trim() : null;
                         };
-                        const id = q('td.column-id') || (row.querySelector('th') ? row.querySelector('th').innerText.trim() : null) || q('td:first-child');
+                        let id = q('td.column-id') || (row.querySelector('th') ? row.querySelector('th').innerText.trim() : null) || q('td:first-child');
+                        // Clean action labels like "Bewerk" and "Verwijder" from the id cell.
+                        if (id) {
+                            try {
+                                const s = String(id);
+                                const m = s.match(/#?\d+/);
+                                if (m) {
+                                    id = m[0];
+                                } else {
+                                    id = s.replace(/\b(Bewerk|Verwijder)\b/gi, '').replace(/\|/g, ' ').trim();
+                                }
+                            } catch (e) {}
+                        }
                         const status = q('td.column-status') || q('td.status') || '';
                         const email = q('td.column-email') || q('td.email') || '';
                         const product = q('td.column-product') || q('td.product') || '';
